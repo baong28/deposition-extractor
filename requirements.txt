@@ -1,56 +1,62 @@
-# --- core ---
-streamlit==1.52.2
-extra-streamlit-components==0.1.81
-streamlit-authenticator==0.4.2
-streamlit-chat==0.1.1
-
-# --- data / viz ---
-pandas
-numpy
-pyarrow==22.0.0
-plotly==6.5.0
-altair==6.0.0
-
-# --- LLM / NLP ---
-openai==2.14.0
-anthropic
-tiktoken==0.12.0
-sentence-transformers==5.2.0
-transformers==4.57.3
-torch==2.2.2
-
-# --- LangChain stack ---
-langchain==1.2.0
-langchain-core==1.2.6
-langchain-community==0.4.1
-langchain-openai==1.1.6
-langchain-text-splitters==1.1.0
-langgraph==1.0.5
-langsmith==0.6.0
-
-# --- PDF / OCR ---
-PyMuPDF==1.26.7
+# PDF Processing
 PyPDF2==3.0.1
 pdfplumber==0.10.2
-pdf2image==1.17.0
-pytesseract==0.3.13
-pypdfium2==5.3.0
-pillow==12.1.0
+PyMuPDF>=1.23.0
+pytesseract
+pdf2image
+Pillow
 
-# --- storage / cloud ---
-dropbox==12.0.2
-google-cloud-storage==3.7.0
-gspread==6.2.1
-pygsheets==2.0.6
+# Streamlit & Frontend
+streamlit
+extra-streamlit-components
+streamlit-authenticator
+streamlit-chat
+frontend
+tools
+
+# Dropbox & Google API
+dropbox
+gspread
+pygsheets
+google-api-python-client
+google-auth
+google-auth-httplib2
+google-auth-oauthlib
+oauth2client
+
+# Machine Learning / NLP
+sentence-transformers
+langchain
+langchain-core
+langchain-cli
+langchain_community
+langchain-openai
+
+# Visualization
+plotly
+pandas
+pyarrow
+altair
+
+# --- LLM / NLP ---
+openai>=1.0.0
+numpy==1.26.4
+anthropic
+tiktoken==0.12.0
+google-cloud-storage
+torch
+torchvision
+torchaudio
 
 # --- db ---
-psycopg2-binary==2.9.11
-SQLAlchemy==2.0.45
+psycopg2-binary
+SQLAlchemy
 
 # --- utils ---
-requests==2.32.5
-tqdm==4.67.1
-python-dotenv==1.2.1
-orjson==3.11.5
-regex==2025.11.3
-tenacity==9.1.2
+requests
+toml
+tqdm
+python-dotenv
+orjson
+regex
+tenacity
