@@ -1,0 +1,50 @@
+# Core
+openai>=1.0.0
+numpy #==1.26.4
+requests
+toml
+
+# PDF Processing
+PyPDF2==3.0.1
+pdfplumber==0.10.2
+PyMuPDF>=1.23.0
+pytesseract
+pdf2image
+Pillow
+
+# Streamlit & Frontend
+streamlit
+streamlit-authenticator
+streamlit-chat
+frontend
+tools
+
+# Dropbox & Google API
+dropbox
+gspread
+pygsheets
+google-api-python-client
+google-auth
+google-auth-httplib2
+google-auth-oauthlib
+oauth2client
+
+# Machine Learning / NLP
+faiss-cpu
+sentence-transformers
+langchain
+langchain-core
+langchain-cli
+langchain_community
+langchain-openai
+
+# Visualization
+plotly
+pandas
+google-cloud-storage
+
+--index-url https://download.pytorch.org/whl/cu121
+torch
+torchvision
+torchaudio
+
