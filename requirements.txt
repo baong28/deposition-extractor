@@ -51,6 +51,7 @@ torchaudio
 # --- db ---
 psycopg2-binary
 SQLAlchemy
+psycopg
 
 # --- utils ---
 requests
@@ -60,3 +61,6 @@ python-dotenv
 orjson
 regex
 tenacity
+
+# --- ssh tunnel 
+sshtunnel
