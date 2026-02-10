@@ -1,6 +1,5 @@
-import json
-import os, re, sys
-import io
+import os, re, sys, io, json
+import tempfile
 import fitz  # PyMuPDF
 import dropbox
 import pytesseract
@@ -18,11 +17,12 @@ import psycopg
 SSH_HOST = st.secrets["ssh"]["SSH_HOST"]
 SSH_PORT = st.secrets["ssh"]["SSH_PORT"]
 SSH_USER = st.secrets["ssh"]["SSH_USER"]
-SSH_KEY = os.path.join(
-    os.environ["USERPROFILE"],
-    ".ssh",
-    st.secrets["ssh"]["SSH_KEY_PATH"]
-)
+SSH_PRIVATE_KEY = st.secrets["ssh"]["SSH_PRIVATE_KEY"]
+# SSH_KEY = os.path.join(
+#     os.environ["USERPROFILE"],
+#     ".ssh",
+#     st.secrets["ssh"]["SSH_KEY_PATH"]
+# )
 DB_NAME = st.secrets["database"]["DB_NAME"]
 DB_USER = st.secrets["database"]["DB_USER"]
 DB_PORT = st.secrets["database"]["DB_PORT"]
@@ -156,14 +156,21 @@ def init_postgresql():
         Create table to store metadata if it does not exist.
 
     """
+    # --- write SSH key to temp file ---
+    with tempfile.NamedTemporaryFile(delete=False) as key_file:
+        key_file.write(SSH_PRIVATE_KEY.encode())
+        ssh_key_path = key_file.name
+
+    # --- SSH Tunnel ---
     tunnel = SSHTunnelForwarder(
         (SSH_HOST, SSH_PORT),
         ssh_username=SSH_USER,
-        ssh_pkey=SSH_KEY,
+        ssh_pkey=ssh_key_path,
         allow_agent=False,
         host_pkey_directories=[],
         remote_bind_address=(DB_HOST, DB_PORT),
     )
+    
     tunnel.start()
 
     try:
@@ -200,14 +207,21 @@ def insert_metadata(docs):
         Insert new metadata into SQLite, skipping existing chunks.
     """
     
+    # --- write SSH key to temp file ---
+    with tempfile.NamedTemporaryFile(delete=False) as key_file:
+        key_file.write(SSH_PRIVATE_KEY.encode())
+        ssh_key_path = key_file.name
+
+    # --- SSH Tunnel ---
     tunnel = SSHTunnelForwarder(
         (SSH_HOST, SSH_PORT),
         ssh_username=SSH_USER,
-        ssh_pkey=SSH_KEY,
+        ssh_pkey=ssh_key_path,
         allow_agent=False,
         host_pkey_directories=[],
         remote_bind_address=(DB_HOST, DB_PORT),
     )
+    
     tunnel.start()
 
     try:

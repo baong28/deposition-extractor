@@ -1,5 +1,5 @@
 # backend/issue_extractor.py
-
+import tempfile
 import uuid, json, re, os
 import psycopg
 from anthropic import Anthropic
@@ -10,11 +10,12 @@ from sshtunnel import SSHTunnelForwarder
 SSH_HOST = st.secrets["ssh"]["SSH_HOST"]
 SSH_PORT = st.secrets["ssh"]["SSH_PORT"]
 SSH_USER = st.secrets["ssh"]["SSH_USER"]
-SSH_KEY = os.path.join(
-    os.environ["USERPROFILE"],
-    ".ssh",
-    st.secrets["ssh"]["SSH_KEY_PATH"]
-)
+SSH_PRIVATE_KEY = st.secrets["ssh"]["SSH_PRIVATE_KEY"]
+# SSH_KEY = os.path.join(
+#     os.environ["USERPROFILE"],
+#     ".ssh",
+#     st.secrets["ssh"]["SSH_KEY_PATH"]
+# )
 DB_NAME = st.secrets["database"]["DB_NAME"]
 DB_USER = st.secrets["database"]["DB_USER"]
 DB_PORT = st.secrets["database"]["DB_PORT"]
@@ -64,14 +65,22 @@ def extract_json(text):
     return match.group(0) if match else None
 
 def init_issue_tables():
+    
+    # --- write SSH key to temp file ---
+    with tempfile.NamedTemporaryFile(delete=False) as key_file:
+        key_file.write(SSH_PRIVATE_KEY.encode())
+        ssh_key_path = key_file.name
+
+    # --- SSH Tunnel ---
     tunnel = SSHTunnelForwarder(
         (SSH_HOST, SSH_PORT),
         ssh_username=SSH_USER,
-        ssh_pkey=SSH_KEY,
+        ssh_pkey=ssh_key_path,
         allow_agent=False,
         host_pkey_directories=[],
         remote_bind_address=(DB_HOST, DB_PORT),
     )
+    
     tunnel.start()
 
     try:
@@ -104,14 +113,21 @@ def init_issue_tables():
 def run_issue_extraction(filename: str):
     init_issue_tables()
 
+    # --- write SSH key to temp file ---
+    with tempfile.NamedTemporaryFile(delete=False) as key_file:
+        key_file.write(SSH_PRIVATE_KEY.encode())
+        ssh_key_path = key_file.name
+
+    # --- SSH Tunnel ---
     tunnel = SSHTunnelForwarder(
-        (SSH_HOST, 22),
+        (SSH_HOST, SSH_PORT),
         ssh_username=SSH_USER,
-        ssh_pkey=SSH_KEY,
+        ssh_pkey=ssh_key_path,
         allow_agent=False,
         host_pkey_directories=[],
         remote_bind_address=(DB_HOST, DB_PORT),
     )
+    
     tunnel.start()
 
     try:
