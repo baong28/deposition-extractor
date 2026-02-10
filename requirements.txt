@@ -45,7 +45,7 @@ torch==2.5.1
 sentence-transformers
 
 # ================= Database =================
-psycopg2-binary==2.9.11
+psycopg[binary]==3.3.2
 SQLAlchemy
 
 # ================= SSH Tunnel =================
@@ -61,3 +61,4 @@ python-dotenv
 orjson
 regex
 tenacity
+
