@@ -292,7 +292,7 @@ with tab_review:
                         <div style="
                             position: sticky;
                             top: 0;
-                            background: white;
+                            background: rgba(255,255,255,0);
                             z-index: 10;
                             padding-bottom: 8px;
                         ">
@@ -352,7 +352,7 @@ with tab_review:
                         <div style="
                             position: sticky;
                             top: 0;
-                            background: white;
+                            background: rgba(255,255,255,0);
                             z-index: 10;
                             padding-bottom: 8px;
                         ">
@@ -417,3 +417,4 @@ with tab_review:
                                 st.session_state.download_page = None
 
                         
+
