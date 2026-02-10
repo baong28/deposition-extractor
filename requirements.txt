@@ -1,4 +1,4 @@
-# PDF Processing
+# ================= PDF Processing =================
 PyPDF2==3.0.1
 pdfplumber==0.10.2
 PyMuPDF>=1.23.0
@@ -6,15 +6,13 @@ pytesseract
 pdf2image
 Pillow
 
-# Streamlit & Frontend
-streamlit
+# ================= Streamlit & Frontend =================
+streamlit>=1.30
 extra-streamlit-components
 streamlit-authenticator
 streamlit-chat
-frontend
-tools
 
-# Dropbox & Google API
+# ================= Dropbox & Google API =================
 dropbox
 gspread
 pygsheets
@@ -23,37 +21,36 @@ google-auth
 google-auth-httplib2
 google-auth-oauthlib
 oauth2client
+google-cloud-storage
 
-# Machine Learning / NLP
-sentence-transformers
-langchain
-langchain-core
-langchain-cli
-langchain_community
-langchain-openai
-
-# Visualization
-plotly
+# ================= Data & Visualization =================
 pandas
+numpy==1.26.4
 pyarrow
+plotly
 altair
 
-# --- LLM / NLP ---
+# ================= LLM / NLP =================
 openai>=1.0.0
-numpy==1.26.4
 anthropic
 tiktoken==0.12.0
-google-cloud-storage
-torch
-torchvision
-torchaudio
 
-# --- db ---
-psycopg2-binary
+langchain
+langchain-core
+langchain-community
+langchain-openai
+
+# ================= ML (Python 3.13 compatible) =================
+torch==2.5.1
+torchvision==0.20.1
+torchaudio==2.5.1
+sentence-transformers
+
+# ================= Database =================
+psycopg[binary]==3.3.2
 SQLAlchemy
-psycopg
 
-# --- utils ---
+# ================= Utils =================
 requests
 toml
 tqdm
@@ -62,5 +59,5 @@ orjson
 regex
 tenacity
 
-# --- ssh tunnel 
+# ================= SSH Tunnel =================
 sshtunnel
