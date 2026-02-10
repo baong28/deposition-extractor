@@ -45,8 +45,13 @@ torch==2.5.1
 sentence-transformers
 
 # ================= Database =================
-psycopg[binary]==3.3.2
+psycopg2-binary==2.9.11
 SQLAlchemy
+
+# ================= SSH Tunnel =================
+sshtunnel==0.4.0
+paramiko<3.5
+cryptography<48
 
 # ================= Utils =================
 requests
@@ -56,7 +61,3 @@ python-dotenv
 orjson
 regex
 tenacity
-
-# ================= SSH Tunnel =================
-sshtunnel
-
