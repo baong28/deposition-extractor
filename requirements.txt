@@ -40,10 +40,8 @@ langchain-core
 langchain-community
 langchain-openai
 
-# ================= ML (Python 3.13 compatible) =================
+# ================= ML =================
 torch==2.5.1
-torchvision==0.20.1
-torchaudio==2.5.1
 sentence-transformers
 
 # ================= Database =================
@@ -61,3 +59,4 @@ tenacity
 
 # ================= SSH Tunnel =================
 sshtunnel
+
