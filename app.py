@@ -37,7 +37,7 @@ def render_footer():
                 z-index: 999;
             }}
             .footer-brand {{
-                color: #f8fafc;
+                color: #6b7280;
                 font-weight: 300;
                 margin-bottom: 4px;
             }}
