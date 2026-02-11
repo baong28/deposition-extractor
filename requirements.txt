@@ -61,4 +61,4 @@ python-dotenv
 orjson
 regex
 tenacity
-
+werkzeug

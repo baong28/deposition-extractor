@@ -1,10 +1,150 @@
-
+from werkzeug.security import check_password_hash
 from indexing import build_index
 from pdf_utils import *
 from db_utils import *
 import time
+import base64
 import pandas as pd
 import streamlit as st
+
+# ----------- LOGIN SESSION ----------
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+
+if "username" not in st.session_state:
+    st.session_state.username = None
+
+PRIMARY_COLOR = "#4879a5"
+
+def render_footer():
+    st.markdown(f"""
+        <style>
+            .main > div {{
+                padding-bottom: 80px;
+            }}
+            .app-footer {{
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                text-align: center;
+                font-size: 12px;
+                opacity: 0.85;
+                color: #6b7280;
+                line-height: 1.6;
+                padding: 15px 10px;
+                background-color: tran;
+                z-index: 999;
+            }}
+            .footer-brand {{
+                color: #f8fafc;
+                font-weight: 300;
+                margin-bottom: 4px;
+            }}
+        </style>
+
+        <div class="app-footer">
+            <div class="footer-brand">Powered by baong28</div>
+            <div>Kirkendall Dwyer LLP © 2026. All Rights Reserved.</div>
+        </div>
+    """, unsafe_allow_html=True)
+
+def load_logo(path):
+    with open(path, "rb") as f:
+        return base64.b64encode(f.read()).decode()
+
+def login():
+    logo_base64 = load_logo("assets/logo.png")
+    
+    st.markdown(f"""
+        <style>
+            body {{
+                background-color: #ffffff00;
+            }}
+
+            .login-wrapper {{
+                max-width: 420px;
+                margin: 0 auto;
+                padding-top: 60px;
+            }}
+
+            .login-title {{
+                text-align: center;
+                font-size: 20px;
+                font-weight: 500;
+                letter-spacing: 0.5px;
+                margin-top: 24px;
+                margin-bottom: 40px;
+                color: #1f2937;
+            }}
+
+            .stButton > button {{
+                width: 100%;
+                background-color: #4879a5;
+                color: white;
+                border-radius: 4px;
+                font-weight: 500;
+                padding: 10px;
+            }}
+
+            .stButton > button:hover {{
+                background-color: #1f2937;
+            }}
+
+            footer {{visibility: hidden;}}
+            #MainMenu {{visibility: hidden;}}
+        </style>
+    
+        <div style="
+            display: flex;
+            justify-content: center;
+            margin-top: 90px;
+            margin-bottom: 10px;
+        ">
+            <img src="data:image/png;base64,{logo_base64}" width="260">
+        </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown('<div class="login-wrapper">', unsafe_allow_html=True)
+
+    st.markdown(
+        f'<div style="text-align:center;font-size:30px;font-weight:500;color:{PRIMARY_COLOR};margin-top:24px;margin-bottom:40px;"> Welcome to Themis - Legal AI Assitant </div>',
+        unsafe_allow_html=True
+    )
+
+    st.markdown(
+        '<div style="text-align:center;color:#6b7280;font-size:20px;margin-top:-25px;margin-bottom:30px;"> Turning Depositions into Insights Instantly </div>',
+        unsafe_allow_html=True
+    )
+
+    with st.form("login_form"):
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+        submitted = st.form_submit_button("Sign In")
+
+        if submitted:
+            users = st.secrets["auth"]
+
+            if username in users and check_password_hash(users[username], password):
+                st.session_state.authenticated = True
+                st.session_state.username = username
+                st.rerun()
+            else:
+                st.error("Invalid username or password")
+
+    st.markdown('</div>', unsafe_allow_html=True)
+    render_footer()
+
+def logout():
+
+    for key in list(st.session_state.keys()):
+        del st.session_state[key]
+    st.rerun()
+
+# ---------- REQUIRE LOGIN ----------
+if not st.session_state.authenticated:
+    login()
+    st.stop()
 
 st.set_page_config(
     layout="wide",
@@ -17,6 +157,73 @@ st.set_page_config(
          'About': "# This is a header. This is an *extremely* cool app!"
      }
 )
+
+st.markdown(f"""
+    <style>
+        :root {{
+            --primary-color: {PRIMARY_COLOR};
+        }}
+
+        /* General font */
+        html, body, [class*="css"] {{
+            font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+        }}
+
+        /* Buttons */
+        .stButton > button {{
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 4px;
+            border: none;
+            font-weight: 500;
+        }}
+
+        .stButton > button:hover {{
+            background-color: #3b6488;
+            color: white;
+        }}
+
+        /* Primary button */
+        div[data-testid="stFormSubmitButton"] > button {{
+            background-color: var(--primary-color);
+            color: white;
+        }}
+
+        /* Tabs highlight */
+        button[role="tab"][aria-selected="true"] {{
+            color: var(--primary-color);
+            border-bottom: 3px solid var(--primary-color);
+        }}
+
+        /* Selectbox focus */
+        div[data-baseweb="select"] > div {{
+            border-radius: 4px;
+        }}
+
+        /* Sidebar */
+        section[data-testid="stSidebar"] {{
+            background-color: #012545;
+        }}
+
+        /* Download button */
+        .stDownloadButton > button {{
+            background-color: var(--primary-color);
+            color: white;
+        }}
+
+        /* Hide Streamlit footer */
+        footer {{visibility: hidden;}}
+        #MainMenu {{visibility: hidden;}}
+
+    </style>
+    """, unsafe_allow_html=True
+)
+
+with st.sidebar:
+    st.markdown("### 👤 User")
+    st.write(f"Logged in as: {st.session_state.username}")
+    if st.button("Logout"):
+        logout()
 
 st.markdown("""
     <style>
@@ -137,9 +344,6 @@ with tab_index:
         type=["pdf"],
         label_visibility="collapsed"
     )
-
-# if uploaded and not st.session_state.index_done:
-#     st.session_state.uploaded_file = uploaded
 
     if uploaded:
         st.markdown(
@@ -290,6 +494,7 @@ with tab_review:
                 with col_left:
                     st.markdown("""
                         <div style="
+                            color: #4879a5;
                             position: sticky;
                             top: 0;
                             background: rgba(255,255,255,0);
@@ -350,6 +555,7 @@ with tab_review:
                                                                    
                     st.markdown("""
                         <div style="
+                            color: #4879a5;
                             position: sticky;
                             top: 0;
                             background: rgba(255,255,255,0);
@@ -415,6 +621,4 @@ with tab_review:
                             if st.button("↩ Cancel", key=f"cancel_{issue_key}"):
                                 st.session_state.confirm_download[issue_key] = False
                                 st.session_state.download_page = None
-
-                        
-
+                      
