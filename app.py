@@ -188,13 +188,28 @@ st.markdown(f"""
             background-color: var(--primary-color);
             color: white;
         }}
-
-        /* Tabs highlight */
-        button[role="tab"][aria-selected="true"] {{
+        
+        /* Tab container */
+        div[data-testid="stTabs"] button {{
+            color: #374151;
+            font-weight: 500;
+        }}
+        
+        /* Tab active text */
+        div[data-testid="stTabs"] button[aria-selected="true"] {{
             color: var(--primary-color);
-            border-bottom: 3px solid var(--primary-color);
+        }}   
+
+        /* Remove default red underline */
+        div[data-testid="stTabs"] button[aria-selected="true"]::after {{
+            border-bottom: 3px solid #4879a5 !important;
         }}
 
+        /* Custom underline */
+        div[data-testid="stTabs"] button[aria-selected="true"] {{
+            border-bottom: 3px solid var(--primary-color);
+        }}
+        
         /* Selectbox focus */
         div[data-baseweb="select"] > div {{
             border-radius: 4px;
@@ -215,13 +230,37 @@ st.markdown(f"""
         footer {{visibility: hidden;}}
         #MainMenu {{visibility: hidden;}}
 
+        /* Sidebar user text */
+        .sidebar-user-title {{
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }}
+
+        .sidebar-user-name {{
+            color: white;
+            font-size: 15px;
+            margin-bottom: 15px;
+            opacity: 0.95;
+        }}
+
     </style>
     """, unsafe_allow_html=True
 )
 
 with st.sidebar:
-    st.markdown("### 👤 User")
-    st.write(f"Logged in as: {st.session_state.username}")
+    st.markdown(
+        f"""
+        <div class="sidebar-user">
+            <div class="sidebar-user-title">👤 User</div>
+            <div class="sidebar-user-name">
+                Logged in as: {st.session_state.username}
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
     if st.button("Logout"):
         logout()
 
