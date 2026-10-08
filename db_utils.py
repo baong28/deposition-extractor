@@ -15,9 +15,22 @@ SSH_PRIVATE_KEY = st.secrets["ssh"]["SSH_PRIVATE_KEY"]
 # )
 DB_NAME = st.secrets["database"]["DB_NAME"]
 DB_USER = st.secrets["database"]["DB_USER"]
-DB_PORT = st.secrets["database"]["DB_PORT"]
-DB_HOST = st.secrets["database"]["DB_HOST"]
 DB_PASSWORD = st.secrets["database"]["DB_PASSWORD"]
+
+DB_HOST = st.secrets["database"].get(
+    "DB_HOST",
+    "127.0.0.1"
+)
+
+DB_PORT = int(
+    st.secrets["database"].get(
+        "DB_PORT",
+        15432
+    )
+)
+
+# Local endpoint of SSH tunnel
+LOCAL_HOST = "127.0.0.1"
 
 def get_indexed_filenames():
     # --- write SSH key to temp file ---
@@ -32,9 +45,9 @@ def get_indexed_filenames():
         ssh_pkey=ssh_key_path,
         allow_agent=False,
         host_pkey_directories=[],
-        remote_bind_address=(DB_HOST, 15432),
+        remote_bind_address=(DB_HOST, DB_PORT),
         local_bind_address=(
-            DB_HOST,
+            LOCAL_HOST,
             0
         ),
         set_keepalive=30
@@ -88,11 +101,11 @@ def get_file_stats():
         host_pkey_directories=[],
         remote_bind_address=(
             DB_HOST,
-            15432
+            DB_PORT
         ),
 
         local_bind_address=(
-            DB_HOST,
+            LOCAL_HOST,
             0
         ),
         set_keepalive=30
