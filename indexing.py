@@ -170,6 +170,11 @@ def init_postgresql():
         allow_agent=False,
         host_pkey_directories=[],
         remote_bind_address=(DB_HOST, DB_PORT),
+        local_bind_address=(
+            DB_HOST,
+            0
+        ),
+        set_keepalive=30,
     )
     
     tunnel.start()
@@ -221,13 +226,18 @@ def insert_metadata(docs):
         allow_agent=False,
         host_pkey_directories=[],
         remote_bind_address=(DB_HOST, DB_PORT),
+        local_bind_address=(
+            DB_HOST,
+            0
+        ),
+        set_keepalive=30,
     )
-    
+
     tunnel.start()
 
     try:
         conn = psycopg2.connect(
-            host=DB_HOST,
+            host="127.0.0.1"        ,
             port=tunnel.local_bind_port,
             dbname=DB_NAME,
             user=DB_USER,
