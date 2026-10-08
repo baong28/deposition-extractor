@@ -1,4 +1,4 @@
-import psycopg
+import psycopg2
 from sshtunnel import SSHTunnelForwarder
 import os
 import tempfile
@@ -38,7 +38,7 @@ def get_indexed_filenames():
     tunnel.start()
 
     try:
-        conn = psycopg.connect(
+        conn = psycopg2.connect(
             host=DB_HOST,
             port=tunnel.local_bind_port,
             dbname=DB_NAME,
@@ -87,7 +87,7 @@ def get_file_stats():
     tunnel.start()
 
     try:
-        conn = psycopg.connect(
+        conn = psycopg2.connect(
             host=DB_HOST,
             port=tunnel.local_bind_port,
             dbname=DB_NAME,
@@ -149,7 +149,7 @@ def get_extracted_issues(filenames: list[str]):
     tunnel.start()
 
     try:
-        conn = psycopg.connect(
+        conn = psycopg2.connect(
             host=DB_HOST,
             port=tunnel.local_bind_port,
             dbname=DB_NAME,
