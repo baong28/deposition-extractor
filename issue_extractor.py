@@ -5,22 +5,7 @@ import psycopg2
 from anthropic import Anthropic
 import streamlit as st
 from tqdm import tqdm  
-from sshtunnel import SSHTunnelForwarder
-
-SSH_HOST = st.secrets["ssh"]["SSH_HOST"]
-SSH_PORT = st.secrets["ssh"]["SSH_PORT"]
-SSH_USER = st.secrets["ssh"]["SSH_USER"]
-SSH_PRIVATE_KEY = st.secrets["ssh"]["SSH_PRIVATE_KEY"]
-# SSH_KEY = os.path.join(
-#     os.environ["USERPROFILE"],
-#     ".ssh",
-#     st.secrets["ssh"]["SSH_KEY_PATH"]
-# )
-DB_NAME = st.secrets["database"]["DB_NAME"]
-DB_USER = st.secrets["database"]["DB_USER"]
-DB_PORT = st.secrets["database"]["DB_PORT"]
-DB_HOST = st.secrets["database"]["DB_HOST"]
-DB_PASSWORD = st.secrets["database"]["DB_PASSWORD"]
+from db_utils import get_pg_conn
 
 ANTHROPIC_MODEL = st.secrets["claude"]["anthropic_model"]
 ANTHROPIC_API_KEY = st.secrets["claude"]["api_key"]
@@ -65,37 +50,16 @@ def extract_json(text):
     return match.group(0) if match else None
 
 def init_issue_tables():
-    
-    # --- write SSH key to temp file ---
-    with tempfile.NamedTemporaryFile(delete=False) as key_file:
-        key_file.write(SSH_PRIVATE_KEY.encode())
-        ssh_key_path = key_file.name
 
-    # --- SSH Tunnel ---
-    tunnel = SSHTunnelForwarder(
-        (SSH_HOST, SSH_PORT),
-        ssh_username=SSH_USER,
-        ssh_pkey=ssh_key_path,
-        allow_agent=False,
-        host_pkey_directories=[],
-        remote_bind_address=(DB_HOST, DB_PORT),
-    )
-    
-    tunnel.start()
+    conn = None
+    tunnel = None
 
     try:
-        conn = psycopg2.connect(
-            host=DB_HOST,
-            port=tunnel.local_bind_port,
-            dbname=DB_NAME,
-            user=DB_USER,
-            password=DB_PASSWORD,
-            connect_timeout=5,
-        )
-        
+
+        conn, tunnel = get_pg_conn()
+
         with conn.cursor() as cur:
 
-            # track chunk đã extract hay chưa
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS issue_progress (
                     chunk_id TEXT PRIMARY KEY,
@@ -104,42 +68,26 @@ def init_issue_tables():
                 )
             """)
 
-            conn.commit()
-            conn.close()
-            
+        conn.commit()
+
     finally:
-        tunnel.stop()
+
+        if conn is not None:
+            conn.close()
+
+        if tunnel is not None:
+            tunnel.stop()
 
 def run_issue_extraction(filename: str):
     init_issue_tables()
 
-    # --- write SSH key to temp file ---
-    with tempfile.NamedTemporaryFile(delete=False) as key_file:
-        key_file.write(SSH_PRIVATE_KEY.encode())
-        ssh_key_path = key_file.name
-
-    # --- SSH Tunnel ---
-    tunnel = SSHTunnelForwarder(
-        (SSH_HOST, SSH_PORT),
-        ssh_username=SSH_USER,
-        ssh_pkey=ssh_key_path,
-        allow_agent=False,
-        host_pkey_directories=[],
-        remote_bind_address=(DB_HOST, DB_PORT),
-    )
-    
-    tunnel.start()
+    conn = None
+    tunnel = None
 
     try:
-        conn = psycopg2.connect(
-            host=DB_HOST,
-            port=tunnel.local_bind_port,
-            dbname=DB_NAME,
-            user=DB_USER,
-            password=DB_PASSWORD,
-            connect_timeout=5,
-        )
-        
+
+        conn, tunnel = get_pg_conn()
+
         with conn.cursor() as cur:
             # 🔍 Lấy chunk CHƯA extract cho file được chọn
             cur.execute("""
@@ -251,7 +199,8 @@ def run_issue_extraction(filename: str):
 
             return extracted
     finally:
-        tunnel.stop()
-        
+        if tunnel is not None:
+            tunnel.stop()
+
 if __name__ == "__main__":
     run_issue_extraction()

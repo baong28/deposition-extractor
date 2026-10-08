@@ -11,36 +11,8 @@ from concurrent.futures import ThreadPoolExecutor
 from sentence_transformers import SentenceTransformer
 import streamlit as st
 import pytesseract
-from sshtunnel import SSHTunnelForwarder
 import psycopg2
-
-SSH_HOST = st.secrets["ssh"]["SSH_HOST"]
-SSH_PORT = st.secrets["ssh"]["SSH_PORT"]
-SSH_USER = st.secrets["ssh"]["SSH_USER"]
-SSH_PRIVATE_KEY = st.secrets["ssh"]["SSH_PRIVATE_KEY"]
-# SSH_KEY = os.path.join(
-#     os.environ["USERPROFILE"],
-#     ".ssh",
-#     st.secrets["ssh"]["SSH_KEY_PATH"]
-# )
-DB_NAME = st.secrets["database"]["DB_NAME"]
-DB_USER = st.secrets["database"]["DB_USER"]
-DB_PASSWORD = st.secrets["database"]["DB_PASSWORD"]
-
-DB_HOST = st.secrets["database"].get(
-    "DB_HOST",
-    "127.0.0.1"
-)
-
-DB_PORT = int(
-    st.secrets["database"].get(
-        "DB_PORT",
-        15432
-    )
-)
-
-# Local endpoint of SSH tunnel
-LOCAL_HOST = "127.0.0.1"
+from db_utils import get_pg_conn
 
 # Nếu Windows, set đường dẫn cụ thể nếu không trong PATH
 if sys.platform.startswith("win"):
@@ -166,107 +138,70 @@ def load_documents_from_streamlit(uploaded_file):
     return docs
 
 def init_postgresql():
-    """
-        Create table to store metadata if it does not exist.
 
-    """
-    # --- write SSH key to temp file ---
-    with tempfile.NamedTemporaryFile(delete=False) as key_file:
-        key_file.write(SSH_PRIVATE_KEY.encode())
-        ssh_key_path = key_file.name
-
-    # --- SSH Tunnel ---
-    tunnel = SSHTunnelForwarder(
-        (SSH_HOST, SSH_PORT),
-        ssh_username=SSH_USER,
-        ssh_pkey=ssh_key_path,
-        allow_agent=False,
-        host_pkey_directories=[],
-        remote_bind_address=(DB_HOST, DB_PORT),
-        local_bind_address=(
-            LOCAL_HOST,
-            0
-        ),
-        set_keepalive=30,
-    )
-    
-    tunnel.start()
+    conn = None
+    tunnel = None
 
     try:
-        conn = psycopg2.connect(
-            host=DB_HOST,
-            port=tunnel.local_bind_port,
-            dbname=DB_NAME,
-            user=DB_USER,
-            password=DB_PASSWORD,
-            connect_timeout=5,
-        )
+
+        conn, tunnel = get_pg_conn()
 
         with conn.cursor() as cur:
+
             cur.execute("""
-            CREATE TABLE IF NOT EXISTS chunks (
-                chunk_id TEXT PRIMARY KEY,
-                filename TEXT,
-                path TEXT,
-                page INTEGER,
-                chunk_index INTEGER,
-                chunk_chars INTEGER,
-                has_ocr INTEGER,
-                collection_id TEXT,
-                content TEXT
-            )
+                CREATE TABLE IF NOT EXISTS chunks (
+                    chunk_id TEXT PRIMARY KEY,
+                    filename TEXT,
+                    path TEXT,
+                    page INTEGER,
+                    chunk_index INTEGER,
+                    chunk_chars INTEGER,
+                    has_ocr INTEGER,
+                    collection_id TEXT,
+                    content TEXT
+                )
             """)
-            conn.commit()
-            conn.close()
+
+        conn.commit()
+
     finally:
-        tunnel.stop()
-        
+
+        if conn is not None:
+            conn.close()
+
+        if tunnel is not None:
+            tunnel.stop()
+   
 def insert_metadata(docs):
-    """
-        Insert new metadata into SQLite, skipping existing chunks.
-    """
-    
-    # --- write SSH key to temp file ---
-    with tempfile.NamedTemporaryFile(delete=False) as key_file:
-        key_file.write(SSH_PRIVATE_KEY.encode())
-        ssh_key_path = key_file.name
 
-    # --- SSH Tunnel ---
-    tunnel = SSHTunnelForwarder(
-        (SSH_HOST, SSH_PORT),
-        ssh_username=SSH_USER,
-        ssh_pkey=ssh_key_path,
-        allow_agent=False,
-        host_pkey_directories=[],
-        remote_bind_address=(DB_HOST, DB_PORT),
-        local_bind_address=(
-            LOCAL_HOST,
-            0
-        ),
-        set_keepalive=30,
-    )
-
-    tunnel.start()
+    conn = None
+    tunnel = None
 
     try:
-        conn = psycopg2.connect(
-            host="127.0.0.1"        ,
-            port=tunnel.local_bind_port,
-            dbname=DB_NAME,
-            user=DB_USER,
-            password=DB_PASSWORD,
-            connect_timeout=5,
-        )
+
+        conn, tunnel = get_pg_conn()
 
         with conn.cursor() as cur:
-            cur.execute("SELECT chunk_id FROM chunks")
-            existing_ids = {r[0] for r in cur.fetchall()}
+
+            cur.execute("""
+                SELECT chunk_id
+                FROM chunks
+            """)
+
+            existing_ids = {
+                row[0]
+                for row in cur.fetchall()
+            }
 
             new_rows = []
+
             for d in docs:
+
                 meta = d["metadata"]
+
                 if meta["bates_id"] in existing_ids:
                     continue
+
                 new_rows.append((
                     meta["bates_id"],
                     meta["source"],
@@ -279,19 +214,42 @@ def insert_metadata(docs):
                     d["content"]
                 ))
 
-            cur.executemany("""
-                INSERT INTO chunks (
-                    chunk_id, filename, path, page, chunk_index, chunk_chars, has_ocr, collection_id, content
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT (chunk_id) DO NOTHING
-            """, new_rows)
+            if new_rows:
 
-            conn.commit()
-            conn.close()
-            print(f"💾 Saved {len(new_rows)} metadata entries to PostgreSQL.")
-    
+                cur.executemany("""
+                    INSERT INTO chunks (
+                        chunk_id,
+                        filename,
+                        path,
+                        page,
+                        chunk_index,
+                        chunk_chars,
+                        has_ocr,
+                        collection_id,
+                        content
+                    )
+                    VALUES (
+                        %s, %s, %s, %s, %s,
+                        %s, %s, %s, %s
+                    )
+                    ON CONFLICT (chunk_id)
+                    DO NOTHING
+                """, new_rows)
+
+        conn.commit()
+
+        print(
+            f"💾 Saved {len(new_rows)} "
+            f"metadata entries to PostgreSQL."
+        )
+
     finally:
-        tunnel.stop()
+
+        if conn is not None:
+            conn.close()
+
+        if tunnel is not None:
+            tunnel.stop()
 
 _SPEAKER_RE = re.compile(r'^(MR|MS|MRS|DR)\.\s+([A-Z][A-Z\s\-]+):', re.I)
 
