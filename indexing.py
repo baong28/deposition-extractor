@@ -169,7 +169,7 @@ def init_postgresql():
         ssh_pkey=ssh_key_path,
         allow_agent=False,
         host_pkey_directories=[],
-        remote_bind_address=(DB_HOST, DB_PORT),
+        remote_bind_address=(DB_HOST, 15432),
         local_bind_address=(
             DB_HOST,
             0
