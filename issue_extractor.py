@@ -1,7 +1,7 @@
 # backend/issue_extractor.py
 import tempfile
 import uuid, json, re, os
-import psycopg
+import psycopg2
 from anthropic import Anthropic
 import streamlit as st
 from tqdm import tqdm  
@@ -84,7 +84,7 @@ def init_issue_tables():
     tunnel.start()
 
     try:
-        conn = psycopg.connect(
+        conn = psycopg2.connect(
             host=DB_HOST,
             port=tunnel.local_bind_port,
             dbname=DB_NAME,
@@ -131,7 +131,7 @@ def run_issue_extraction(filename: str):
     tunnel.start()
 
     try:
-        conn = psycopg.connect(
+        conn = psycopg2.connect(
             host=DB_HOST,
             port=tunnel.local_bind_port,
             dbname=DB_NAME,

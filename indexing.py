@@ -12,7 +12,7 @@ from sentence_transformers import SentenceTransformer
 import streamlit as st
 import pytesseract
 from sshtunnel import SSHTunnelForwarder
-import psycopg
+import psycopg2
 
 SSH_HOST = st.secrets["ssh"]["SSH_HOST"]
 SSH_PORT = st.secrets["ssh"]["SSH_PORT"]
@@ -175,7 +175,7 @@ def init_postgresql():
     tunnel.start()
 
     try:
-        conn = psycopg.connect(
+        conn = psycopg2.connect(
             host=DB_HOST,
             port=tunnel.local_bind_port,
             dbname=DB_NAME,
@@ -226,7 +226,7 @@ def insert_metadata(docs):
     tunnel.start()
 
     try:
-        conn = psycopg.connect(
+        conn = psycopg2.connect(
             host=DB_HOST,
             port=tunnel.local_bind_port,
             dbname=DB_NAME,
@@ -236,7 +236,8 @@ def insert_metadata(docs):
         )
 
         with conn.cursor() as cur:
-            existing_ids = set(r[0] for r in cur.execute("SELECT chunk_id FROM chunks").fetchall())
+            cur.execute("SELECT chunk_id FROM chunks")
+            existing_ids = {r[0] for r in cur.fetchall()}
 
             new_rows = []
             for d in docs:
