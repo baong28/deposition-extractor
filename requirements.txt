@@ -48,8 +48,7 @@ sentence-transformers>=4,<6
 transformers>=4.50,<5
 
 # ================= Database =================
-psycopg[binary]==3.3.2
-psycopg2
+psycopg2-binary
 SQLAlchemy
 
 # ================= SSH Tunnel =================
