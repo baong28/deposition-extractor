@@ -49,6 +49,7 @@ transformers>=4.50,<5
 
 # ================= Database =================
 psycopg[binary]==3.3.2
+psycopg2
 SQLAlchemy
 
 # ================= SSH Tunnel =================
