@@ -41,8 +41,11 @@ langchain-community
 langchain-openai
 
 # ================= ML =================
-torch==2.5.1
-sentence-transformers
+#torch==2.5.1
+#sentence-transformers
+torch>=2.6,<3
+sentence-transformers>=4,<6
+transformers>=4.50,<5
 
 # ================= Database =================
 psycopg[binary]==3.3.2

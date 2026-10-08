@@ -62,6 +62,7 @@ CHUNK_OVERLAP = 120 # 150
 # ========== MODEL LOADING (cached for streamlit) ==========
 @st.cache_resource(show_spinner=False)
 def load_embedding_model(model_name=SENTENCE_TRANSFORMER_NAME):
+    from sentence_transformers import SentenceTransformer
     return SentenceTransformer(model_name)
 
 def get_dropbox_client():
